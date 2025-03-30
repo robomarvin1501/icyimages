@@ -8,18 +8,37 @@ fn main() -> iced::Result {
 }
 
 #[derive(Default)]
-struct IcyImage {}
+struct IcyImage {
+    paths: Vec<String>,
+    current_index: usize,
+}
 
 impl IcyImage {
+    fn new(flags: Vec<String>) -> Self {
+        let images = flags;
+        Self {
+            paths: images,
+            current_index: 0,
+        }
+    }
+
     fn update(&mut self, message: Message) {
         match message {
-            Message::Next => {}
-            Message::Previous => {}
+            Message::Next => {
+                if self.current_index < self.paths.len() {
+                    self.current_index += 1;
+                }
+            }
+            Message::Previous => {
+                if self.current_index > 0 {
+                    self.current_index -= 1;
+                }
+            }
         }
     }
 
     fn view(&self) -> Element<Message> {
-        let img = Image::new("resources/release_party.jpg")
+        let img = Image::new(self.paths.get(self.current_index).unwrap())
             .width(Length::Fill)
             .height(Length::Fill);
         Container::new(img)
