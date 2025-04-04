@@ -1,10 +1,22 @@
+use clap::Parser;
 use iced::{
-    widget::{container, Container, Image},
-    Element, Length,
+    widget::{container, image, Container, Image},
+    Element, Length, Task,
 };
+mod cli_args;
+use cli_args::Args;
 
 fn main() -> iced::Result {
-    iced::run("Icyimage", IcyImage::update, IcyImage::view)
+    let args: Args = Args::parse();
+    let icy = IcyImage::new(
+        args.files
+            .iter()
+            .map(|path| String::from(path.to_str().expect("Bad file path supplied")))
+            .collect(),
+    );
+    iced::application("Icyimage", IcyImage::update, IcyImage::view)
+        .run_with(move || (icy, Task::none()))
+    // iced::run("Icyimage", IcyImage::update, IcyImage::view)
 }
 
 #[derive(Default)]
@@ -38,9 +50,18 @@ impl IcyImage {
     }
 
     fn view(&self) -> Element<Message> {
-        let img = Image::new(self.paths.get(self.current_index).unwrap())
-            .width(Length::Fill)
-            .height(Length::Fill);
+        let img = Image::<image::Handle>::new(
+            std::path::absolute(self.paths.get(self.current_index).unwrap())
+                .expect(&format!(
+                    "Failed to resolve path {}",
+                    self.paths.get(self.current_index).unwrap()
+                ))
+                .to_str()
+                .unwrap(),
+        )
+        .width(Length::Fill)
+        .height(Length::Fill);
+
         Container::new(img)
             .width(Length::Fill)
             .height(Length::Fill)
